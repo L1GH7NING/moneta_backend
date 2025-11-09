@@ -14,6 +14,6 @@ public class CategoryRequestDTO {
     @NotBlank(message = "Category name cannot be blank")
     @Size(max = 20, message = "Category name must be less than 100 characters")
     private String name;
+    private boolean fixed = false;
 
-    private Long parentId; // Null for main categories, ID for subcategories
 }

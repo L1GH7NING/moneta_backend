@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-@NoArgsConstructor // <--- REQUIRED BY ModelMapper for instantiation
-@AllArgsConstructor // <--- REQUIRED IF @Builder IS USED WITH @Data, or for clean code
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExpenseResponseDTO {
 
     private Long id;

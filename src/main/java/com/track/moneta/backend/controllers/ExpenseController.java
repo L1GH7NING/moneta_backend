@@ -6,6 +6,8 @@ import com.track.moneta.backend.payload.CategoryExpense;
 import com.track.moneta.backend.services.ExpenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,8 +47,14 @@ public class ExpenseController {
             @ModelAttribute ExpenseFilterDTO filter
     ) {
         Long userId = getUserId(currentUser);
-        List<ExpenseResponseDTO> expenses = expenseService.getAllExpenses(userId, filter);
-        return ResponseEntity.ok(expenses);
+        Page<ExpenseResponseDTO> expensePage = expenseService.getAllExpenses(userId, filter);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Total-Count", String.valueOf(expensePage.getTotalElements()));
+        headers.add("Access-Control-Expose-Headers", "X-Total-Count"); // Important for CORS
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(expensePage.getContent());
     }
 
     // GET /api/expenses/{id}
@@ -127,5 +135,19 @@ public class ExpenseController {
         List<DailyExpenseDTO> dailyExpenses = expenseService.getTotalExpensesGroupedByDay(userId, startDate, endDate);
         return ResponseEntity.ok(dailyExpenses);
     }
+
+//    @GetMapping("/category/{categoryId}")
+//    public ResponseEntity<List<ExpenseResponseDTO>> getExpensesByCategory(
+//            @AuthenticationPrincipal UserDTO currentUser,
+//            @PathVariable Long categoryId,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size,
+//            @RequestParam(defaultValue = "expenseDate") String sortBy,
+//            @RequestParam(defaultValue = "asc") String sortDir
+//    ) {
+//        Long userId = getUserId(currentUser);
+//        List<ExpenseResponseDTO> expenses = expenseService.getExpensesByCategory(userId, categoryId, page, size, sortBy, sortDir);
+//        return ResponseEntity.ok(expenses);
+//    }
 
 }

@@ -40,6 +40,16 @@ public class CategoryController {
         return ResponseEntity.ok(categories);
     }
 
+    @GetMapping("/{categoryId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<CategoryResponseDTO> getCategoryById(
+            @PathVariable Long categoryId,
+            @AuthenticationPrincipal UserDTO currentUser
+    ) {
+        CategoryResponseDTO category = categoryService.getCategoryById(categoryId, currentUser.getId());
+        return ResponseEntity.ok(category);
+    }
+
     @PutMapping("/{categoryId}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<CategoryResponseDTO> updateCategory(

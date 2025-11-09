@@ -29,7 +29,7 @@ public class Budget {
     @NotNull(message = "Budget amount cannot be null")
     @Positive(message = "Budget amount must be positive")
     @Column(name = "amount", nullable = false)
-    private BigDecimal amount; // Use BigDecimal for financial calculations
+    private BigDecimal amount;
 
     @NotNull(message = "Start date cannot be null")
     @Column(name = "start_date", nullable = false)

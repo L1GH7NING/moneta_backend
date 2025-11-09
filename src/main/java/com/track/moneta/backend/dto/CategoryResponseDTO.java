@@ -13,8 +13,7 @@ import java.util.Set;
 public class CategoryResponseDTO {
     private Long id;
     private String name;
-    private Long parentId;
+    private boolean fixed;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Set<CategoryResponseDTO> subcategories; // To show nested structure
 }

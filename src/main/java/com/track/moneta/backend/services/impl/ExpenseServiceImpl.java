@@ -12,6 +12,7 @@ import com.track.moneta.backend.models.User;
 import com.track.moneta.backend.payload.CategoryExpense;
 import com.track.moneta.backend.repositories.CategoryRepository;
 import com.track.moneta.backend.repositories.ExpenseRepository;
+import com.track.moneta.backend.repositories.ExpenseSpecification;
 import com.track.moneta.backend.repositories.UserRepository;
 import com.track.moneta.backend.services.ExpenseService;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,7 +79,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ExpenseResponseDTO> getAllExpenses(Long userId, ExpenseFilterDTO filter) {
+    public Page<ExpenseResponseDTO> getAllExpenses(Long userId, ExpenseFilterDTO filter) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new APIException("User not found with id: " + userId));
 
@@ -85,48 +87,21 @@ public class ExpenseServiceImpl implements ExpenseService {
         Sort sort = Sort.by(direction, filter.getSortBy());
         Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
 
-        Page<Expense> expensesPage;
+        Specification<Expense> spec = ExpenseSpecification.hasUser(user);
 
-        // Build query based on provided filters
-        boolean hasStartDate = filter.getStartDate() != null;
-        boolean hasEndDate = filter.getEndDate() != null;
-        boolean hasCategory = filter.getCategoryId() != null;
-
-        if (hasStartDate && hasEndDate && hasCategory) {
-            // All three filters
-            expensesPage = expenseRepository.findByUserAndExpenseDateBetweenAndCategoryId(
-                    user, filter.getStartDate(), filter.getEndDate(), filter.getCategoryId(), pageable);
-        } else if (hasStartDate && hasEndDate) {
-            // Date range only
-            expensesPage = expenseRepository.findByUserAndExpenseDateBetween(
-                    user, filter.getStartDate(), filter.getEndDate(), pageable);
-        } else if (hasStartDate && hasCategory) {
-            // Start date and category
-            expensesPage = expenseRepository.findByUserAndExpenseDateGreaterThanEqualAndCategoryId(
-                    user, filter.getStartDate(), filter.getCategoryId(), pageable);
-        } else if (hasEndDate && hasCategory) {
-            // End date and category
-            expensesPage = expenseRepository.findByUserAndExpenseDateLessThanEqualAndCategoryId(
-                    user, filter.getEndDate(), filter.getCategoryId(), pageable);
-        } else if (hasStartDate) {
-            expensesPage = expenseRepository.findByUserAndExpenseDateGreaterThanEqual(
-                    user, filter.getStartDate(), pageable);
-        } else if (hasEndDate) {
-            // End date only
-            expensesPage = expenseRepository.findByUserAndExpenseDateLessThanEqual(
-                    user, filter.getEndDate(), pageable);
-        } else if (hasCategory) {
-            // Category only
-            expensesPage = expenseRepository.findByUserAndCategoryId(user, filter.getCategoryId(), pageable);
-        } else {
-            // No filters
-            expensesPage = expenseRepository.findByUser(user, pageable);
+        if (filter.getCategoryId() != null) {
+            spec = spec.and(ExpenseSpecification.hasCategoryId(filter.getCategoryId()));
+        }
+        if (filter.getStartDate() != null) {
+            spec = spec.and(ExpenseSpecification.hasStartDate(filter.getStartDate()));
+        }
+        if (filter.getEndDate() != null) {
+            spec = spec.and(ExpenseSpecification.hasEndDate(filter.getEndDate()));
         }
 
-        List<Expense> expenses = expensesPage.getContent();
-        return expenses.stream()
-                .map(expense -> modelMapper.map(expense, ExpenseResponseDTO.class))
-                .collect(Collectors.toList());
+        Page<Expense> expensesPage = expenseRepository.findAll(spec, pageable);
+
+        return expensesPage.map(expense -> modelMapper.map(expense, ExpenseResponseDTO.class));
     }
 
     @Override
@@ -272,4 +247,9 @@ public class ExpenseServiceImpl implements ExpenseService {
                 })
                 .collect(Collectors.toList());
     }
+
+//    @Override
+//    public List<ExpenseResponseDTO> getExpensesByCategory(Long userId, Long categoryId, int page, int size, String sortBy, String sortDir) {
+//        return List.of();
+//    }
 }

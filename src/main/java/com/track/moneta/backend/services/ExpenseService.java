@@ -4,8 +4,8 @@ import com.track.moneta.backend.dto.DailyExpenseDTO;
 import com.track.moneta.backend.dto.ExpenseFilterDTO;
 import com.track.moneta.backend.dto.ExpenseRequestDTO;
 import com.track.moneta.backend.dto.ExpenseResponseDTO;
-import com.track.moneta.backend.models.Category;
 import com.track.moneta.backend.payload.CategoryExpense;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,7 +16,7 @@ public interface ExpenseService {
     // Changed method signature to accept Long userId
     ExpenseResponseDTO createExpense(Long userId, ExpenseRequestDTO request);
 
-    List<ExpenseResponseDTO> getAllExpenses(Long userId, ExpenseFilterDTO filter);
+    Page<ExpenseResponseDTO> getAllExpenses(Long userId, ExpenseFilterDTO filter);
 
     ExpenseResponseDTO getExpenseById(Long id, Long userId);
 
@@ -32,4 +32,6 @@ public interface ExpenseService {
     List<CategoryExpense> getTotalExpensesInRangeCategoryWise(Long userId, LocalDate startDate, LocalDate endDate);
 
     List<DailyExpenseDTO> getTotalExpensesGroupedByDay(Long userId, LocalDate startDate, LocalDate endDate);
+
+//    List<ExpenseResponseDTO> getExpensesByCategory(Long userId, Long categoryId, int page, int size, String sortBy, String sortDir);
 }

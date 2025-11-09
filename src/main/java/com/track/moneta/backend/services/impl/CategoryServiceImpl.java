@@ -35,16 +35,11 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponseDTO createCategory(CategoryRequestDTO categoryDto, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new APIException("User not found"));
-        Category parent = null;
-        if (categoryDto.getParentId() != null) {
-            parent = categoryRepository.findByIdAndUserId(categoryDto.getParentId(), userId)
-                    .orElseThrow(() -> new APIException("Parent category not found"));
-        }
 
         Category category = new Category();
         category.setName(categoryDto.getName());
         category.setUser(user);
-        category.setParent(parent);
+        category.setFixed(categoryDto.isFixed());
         category.setCreatedAt(LocalDateTime.now());
         category.setUpdatedAt(LocalDateTime.now());
 
@@ -55,7 +50,7 @@ public class CategoryServiceImpl implements CategoryService {
     public List<CategoryResponseDTO> getCategoriesByUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new APIException("User not found"));
-        List<Category> categories = categoryRepository.findTopLevelCategoriesWithSubcategories(userId);
+        List<Category> categories = categoryRepository.findByUserId(userId);
         return categories.stream()
                 .map(category -> modelMapper.map(category, CategoryResponseDTO.class))
                 .toList();
@@ -67,6 +62,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new APIException("Category id not found for category id: " + categoryId + " and user id: " + userId));
 
         existingCategory.setName(requestDto.getName());
+        existingCategory.setFixed(requestDto.isFixed());
         existingCategory.setUpdatedAt(LocalDateTime.now());
 
         Category updatedCategory = categoryRepository.save(existingCategory);
@@ -78,5 +74,12 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findByIdAndUserId(categoryId, userId)
                 .orElseThrow(() -> new APIException("Category not found or does not belong to user"));
         categoryRepository.delete(category);
+    }
+
+    @Override
+    public CategoryResponseDTO getCategoryById(Long categoryId, Long id) {
+        Category category = categoryRepository.findByIdAndUserId(categoryId, id)
+                .orElseThrow(() -> new APIException("Category not found or does not belong to user"));
+        return modelMapper.map(category, CategoryResponseDTO.class);
     }
 }
