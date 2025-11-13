@@ -1,0 +1,16 @@
+# Git
+.git
+.gitignore
+
+# Local environment files
+.env
+*.env
+
+# Maven/Gradle build folders
+target
+build
+
+# IDE files
+.idea
+*.iml
+.vscode
