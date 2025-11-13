@@ -65,7 +65,7 @@ public class SecurityConfig {
         // --- CHANGE #2: SPECIFY THE FRONTEND ORIGIN ---
         // You CANNOT use wildcards ("*") for origins when allowCredentials is true.
         // Replace this with the actual URL of your React application.
-        config.setAllowedOrigins(List.of("http://localhost:5173")); // Or your frontend's port (e.g., 3000)
+        config.setAllowedOrigins(List.of("http://localhost:5173", "https://moneta-backend.onrender.com"));
 
         // It's also better to be specific with headers and methods
         config.setAllowedHeaders(List.of("Origin", "Content-Type", "Accept"));
