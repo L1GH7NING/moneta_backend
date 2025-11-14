@@ -24,7 +24,7 @@ public class AuthController {
     private final AuthService authService;
 
     // We can inject this value to control the 'secure' flag of the cookie
-    @Value("${app.cookie.secure:false}") // Default to false for dev environments
+    @Value("${app.cookie.secure}")
     private boolean cookieSecure;
 
     @PostMapping("/signup")
@@ -45,7 +45,7 @@ public class AuthController {
                 .secure(cookieSecure)
                 .path("/")
                 .maxAge(Duration.ofDays(1))
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
 
         // Return the cookie in the header AND the user data in the body
@@ -67,7 +67,7 @@ public class AuthController {
                 .secure(cookieSecure) // Use true in production (HTTPS)
                 .path("/")
                 .maxAge(Duration.ofDays(1))
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
 
         return ResponseEntity.ok()
@@ -84,7 +84,7 @@ public class AuthController {
                 .secure(cookieSecure)
                 .path("/")
                 .maxAge(0) // 👈 Set max age to 0 to expire the cookie
-                .sameSite("Lax")
+                .sameSite("None")
                 .build();
 
         return ResponseEntity.ok()
