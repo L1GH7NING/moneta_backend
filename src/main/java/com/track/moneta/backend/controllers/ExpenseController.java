@@ -4,6 +4,8 @@ import com.track.moneta.backend.dto.*;
 import com.track.moneta.backend.models.Category;
 import com.track.moneta.backend.payload.CategoryExpense;
 import com.track.moneta.backend.services.ExpenseService;
+import com.track.moneta.backend.utility.ExcelGeneratorService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,6 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -22,7 +26,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExpenseController {
 
-    private final ExpenseService expenseService; // Injecting the Interface
+    private final ExpenseService expenseService;
+
+    private final ExcelGeneratorService excelGeneratorService;
 
     private Long getUserId(UserDTO currentUser) {
         if (currentUser == null || currentUser.getId() == null) {
@@ -136,18 +142,25 @@ public class ExpenseController {
         return ResponseEntity.ok(dailyExpenses);
     }
 
-//    @GetMapping("/category/{categoryId}")
-//    public ResponseEntity<List<ExpenseResponseDTO>> getExpensesByCategory(
-//            @AuthenticationPrincipal UserDTO currentUser,
-//            @PathVariable Long categoryId,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size,
-//            @RequestParam(defaultValue = "expenseDate") String sortBy,
-//            @RequestParam(defaultValue = "asc") String sortDir
-//    ) {
-//        Long userId = getUserId(currentUser);
-//        List<ExpenseResponseDTO> expenses = expenseService.getExpensesByCategory(userId, categoryId, page, size, sortBy, sortDir);
-//        return ResponseEntity.ok(expenses);
-//    }
+    @GetMapping("/download/excel") // Changed endpoint to distinguish from CSV
+    public void downloadMonthlyExpensesAsExcel(
+            @AuthenticationPrincipal UserDTO currentUser,
+            @RequestParam int year,
+            @RequestParam int month,
+            HttpServletResponse response) throws IOException {
+
+        Long userId = getUserId(currentUser);
+
+        // 1. Fetch the data using your existing service method (no changes here)
+        List<ExpenseResponseDTO> expenses = expenseService.getExpensesByDateFilter(userId, year, month, null);
+
+        // 2. Set HTTP headers for an Excel file download
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        String headerValue = "attachment; filename=\"expenses-" + year + "-" + month + ".xlsx\"";
+        response.setHeader("Content-Disposition", headerValue);
+
+        // 3. Call the generator service to write the Excel file to the response stream
+        excelGeneratorService.generateMonthlyExpenseExcel(expenses, year, month, response.getOutputStream());
+    }
 
 }
